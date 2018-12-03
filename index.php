@@ -6,6 +6,7 @@ require_once './vendor/autoload.php';
 require_once './clases/AccesoDatos.php';
 require_once './clases/bussinessEmpleado.php';
 require_once './clases/bussinessProducto.php';
+require_once './clases/bussinessPedido.php';
 require_once './clases/authJWT.php';
 require_once './clases/MWAuthJWT.php';
 
@@ -40,7 +41,16 @@ $app->group('/empleado', function () {
 $app->group('/producto', function () {
     $this->get('/' , \bussinessProducto::class . ':TraerTodos');
     $this->get('/{legajo}' , \bussinessProducto::class . ':TraerUno');
-    $this->post('/' , \bussinessProducto::class . ':CrearUno') -> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');    
+    $this->post('/' , \bussinessProducto::class . ':CrearUno');// -> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');    
+});
+
+
+
+//PEDIDO
+$app->group('/pedido', function () {
+    $this->get('/' , \bussinessPedido::class . ':TraerTodos');
+    $this->get('/{legajo}' , \bussinessPedido::class . ':TraerUno');
+    $this->post('/' , \bussinessPedido::class . ':CrearUno');// -> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');    
 });
 
 

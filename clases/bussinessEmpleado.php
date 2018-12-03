@@ -10,6 +10,17 @@ class bussinessEmpleado extends empleado implements IComun
         $operaciones=0;
         $estado=10;
         $datosRecibidos = $request->getParsedBody();
+
+        // //var_dump($datosRecibidos);
+        // foreach ($datosRecibidos['nombre'] as $key) {
+        //     $nombre1=$key;     var_dump ($nombre1);
+        //     //$producto=array("")       
+        //     //echo $val."="."$key";
+        // }
+        
+        // // echo $nombre2;
+        // // echo $nombre3;
+        // die();
         
         $empleado = new empleado();
         $empleado->legajo = $datosRecibidos['legajo'];
