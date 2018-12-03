@@ -30,8 +30,8 @@ $app->get('/', function (Request $request, Response $response, array $args) {
 
 $app->group('/empleado', function () {
     $this->get('/' , \bussinessEmpleado::class . ':TraerTodos');
-    $this->get('/{legajo}' , \bussinessEmpleado::class . ':TraerUno');
-    $this->post('/' , \bussinessEmpleado::class . ':CrearUno');
+    $this->get('/{legajo}' , \bussinessEmpleado::class . ':TraerUno')-> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');
+    $this->post('/' , \bussinessEmpleado::class . ':CrearUno') -> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');
     $this->post('/login', \bussinessEmpleado::class . ':Login');
 });
 
@@ -40,7 +40,7 @@ $app->group('/empleado', function () {
 $app->group('/producto', function () {
     $this->get('/' , \bussinessProducto::class . ':TraerTodos');
     $this->get('/{legajo}' , \bussinessProducto::class . ':TraerUno');
-    $this->post('/' , \bussinessProducto::class . ':CrearUno');
+    $this->post('/' , \bussinessProducto::class . ':CrearUno') -> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');    
 });
 
 
