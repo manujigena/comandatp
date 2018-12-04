@@ -1,130 +1,118 @@
 <?php
 require_once 'pedido.php';
 require_once 'IComun.php';
-require_once 'authJWT.php';
+require_once 'MWAuthJWT.php';
 require_once 'pedProd.php';
 require_once 'producto.php';
 require_once 'horario.php';
 
 class bussinessPedido extends pedido implements IComun
 {
+    
 
     public function CrearUno($request, $response, $args)
     {
-        $datosRecibidos = $request->getParsedBody();
+        //SOLO MOZO Y SOCIO
+        $tipoEmp=MWAuthJWT::ValidarEmpleado($request);
         
-        /*
-        1. idEmpleado = viene del token
-        2. codigo= intentar un random de 6char y validar que no exista en la tabla
-        3. idProducto = se pasa en request
-        4. cantidad del producto en request
-        */
-        $idEstado = 1;//estado pendiente de inicio
-        $acumulador=0;
-        //$fotoRequest=$request->getUploadedFiles();
-        // $codigo=$this->CrearCodigoMesa();
-        // echo$codigo;
-        // $stringBDFOTO = $this->ManejoImagen($codigo);
-        // echo"fotito ok";
-        // die();
-        // $idPedido=54;
-        // $acumulador=1223;
-        // $totalAmount=pedido::ActualizarMontoTotal($idPedido, $acumulador);
-        // echo $totalAmount;
-        // die();
-
-        //Primero verifico que el codigo que genero no este en la tabla, si no esta sigo con el ALTA
-        $codigo=$this->CrearCodigoMesa();
-        if($codigo != ""){
-            $pedido = new pedido();
-            $pedido->idMesa = $datosRecibidos['idMesa'];
-            /*Prueba de datos*/
-            $pedido->idEmpleado=1;
-            $pedido->codigo=$this->CrearCodigoMesa();
-            /*hasta aca*/
-            $pedido->nombreCte = $datosRecibidos['nombreCte'];
-            $pedido->foto = $this->ManejoImagen($codigo);
-            $pedido->idEstado=$idEstado;
-    
-            /* var_dump($empleado);
-            die(); */
-            //idPedido para poder agregar en tabla ped_prod
-            //var_dump($pedido);
-            $idPedido = $pedido->InsertPedido();
-            //echo $idPedido;
-    
-    
-            /*Alta en horario*/
-            $horarioInicioPedido = horario::InsertHorarioPedido($idPedido);
-            $cant=0;
-            /*Alta de productos en ped_prod*/
-            foreach ($datosRecibidos['productos'] as $producto) {
-    
-                $pedProd = new pedProd();
-                $pedProd->idPedido = $idPedido;
-                $pedProd->idProducto = $producto['idProducto'];
-                $pedProd->idEstado = 1;
-                $pedProd->cantidad = $producto['cantidad'];
-    
-                $idPedProd = $pedProd->InsertPedProd();
-                //INTENTAR TRAER EL MONTO
-                //$acumunlador
-                $unProduto=producto::SelectUnProducto($producto['idProducto']);
-                $acumulador+=($unProduto->monto * $producto['cantidad']);
-                
-                //Para saber cantidad de productos en el pedido
-                $cant+=$idPedProd;
-            }
-            //actualizo MontoTotal en el Alta
-            $pedidoMontoOk=pedido::ActualizarMontoTotal($idPedido, $acumulador);
-            
-            
-            //Lo mejor seria mostrar el idPedido con la cantidad de productos q contiene
-            $response = array('status' => 200, 'idPedido' => $idPedido, 'cantidad' => $cant, 'precioTotal' => $acumulador);
-            //echo "Se termino el alta del pedido con $cant productos, precio total ->"."$".$acumulador;
-            //return $response->write(json_encode($idProducto));
-            return json_encode($response);
-
-        }
-        else
+        if($tipoEmp ==1 || $tipoEmp ==5)
         {
-            echo "volver a intentar mas tarde";
+            /*VER SI SIRVE*/
+            $datosRecibidos = $request->getParsedBody();
+            
+            $idEstado = 1;//estado pendiente de inicio
+            $acumulador=0;
+            
+            //Primero verifico que el codigo que genero no este en la tabla, si no esta sigo con el ALTA
+            $codigo=$this->CrearCodigoMesa();
+            if($codigo != ""){
+                $pedido = new pedido();
+                $pedido->idMesa = $datosRecibidos['idMesa'];
+                /*Prueba de datos*/
+                $pedido->idEmpleado=1;
+                $pedido->codigo=$this->CrearCodigoMesa();
+                /*hasta aca*/
+                $pedido->nombreCte = $datosRecibidos['nombreCte'];
+                $pedido->foto = $this->ManejoImagen($codigo);
+                $pedido->idEstado=$idEstado;
+        
+                
+                $idPedido = $pedido->InsertPedido();        
+        
+                /*Alta en horario*/
+                $horarioInicioPedido = horario::InsertHorarioPedido($idPedido);
+                $cant=0;
+                /*Alta de productos en ped_prod*/
+                foreach ($datosRecibidos['productos'] as $producto) {
+        
+                    $pedProd = new pedProd();
+                    $pedProd->idPedido = $idPedido;
+                    $pedProd->idProducto = $producto['idProducto'];
+                    $pedProd->idEstado = 1;
+                    $pedProd->cantidad = $producto['cantidad'];
+        
+                    $idPedProd = $pedProd->InsertPedProd();
+                    
+                    $unProduto=producto::SelectUnProducto($producto['idProducto']);
+                    $acumulador+=($unProduto->monto * $producto['cantidad']);
+                    
+                    //Para saber cantidad de productos en el pedido
+                    $cant+=$idPedProd;
+                }
+                //actualizo MontoTotal en el Alta
+                $pedidoMontoOk=pedido::ActualizarMontoTotal($idPedido, $acumulador);
+                
+                
+                //Lo mejor seria mostrar el idPedido con la cantidad de productos q contiene
+                $responsePedido = array('codigoMesa' => $codigo, 'idPedido' => $idPedido, 'cantidadProductos' => $cant, 'precioTotal' => $acumulador);
+                
+                $newResponse = $response->withJson($responsePedido, 200);
+                
+                return $newResponse;
+            }
+            else
+            {
+                echo "volver a intentar mas tarde";
+            }
+        }else{
+            $responseFalla= array('estado' => "No Autorizado");
+            return $response->withJson($responseFalla,401);
         }
-
-
-        // $fotoRequest=$request->getUploadedFiles();
-        // var_dump($fotoRequest);
-        // $aux= $fotoRequest['foto']->getClientFilename();
-        // echo $aux;
-        // die();
-
-
-
-
-
-
-
         
     }
 
 
+    //LISTADO SEGUN EL EMPLEADO
     public function TraerTodos($request, $response, $args)
-    {
-        /* $listado = empleado::SelectLosEmpleados();
-        $response->write(json_encode($listado));
-
-        return $response; */
-        $listado=producto::SelectLosProductos();
+    {        
+        $tipoEmp=MWAuthJWT::ValidarEmpleado($request);
+        
+        if($tipoEmp ==1 || $tipoEmp ==5)
+        {
+            
+            $listado=pedido::SelectLosPedidos();            
+        }
+        else
+        {            
+            $listado=pedido::SelectLosPedidosPorEmpleado($tipoEmp);
+            
+        }        
         $newResponse = $response->withJson($listado, 200);
-       return $newResponse;
+        return $newResponse;
     }
 
     public function TraerUno($request, $response, $args)
+    {        
+        //code...
+    }
+
+    public function BorrarUno($request, $response, $args)
     {
-        $idProducto=$args['idProducto'];
-        $unProducto = producto::SelectUnProducto($idProducto);
-        $newResponse = $response->withJson($unProducto, 200);
-        return $newResponse;
+        //code...
+    }
+    public function ModificarUno($request, $response, $args)
+    {
+        //code...
     }
 
 

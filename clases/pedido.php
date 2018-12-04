@@ -11,30 +11,12 @@ class pedido
     public $monto;
 
 
-
-
-
-    /***
-    consulto por codigo si ya esta en la tabla
-    param=$codigo
-    response=true
-    ***/
-
-
-
-
-
-    /***
-    Alta de un pedido
-    param=$codigo
-    response=true
-    ***/
     public function InsertPedido()
 	{        
         $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
         $consulta = $objetoAccesoDato->RetornarConsulta("INSERT into pedido (idMesa, idEmpleado, codigo, nombreCte, foto, idEstado) values ('$this->idMesa','$this->idEmpleado','$this->codigo','$this->nombreCte','$this->foto','$this->idEstado')");
         $consulta->execute();
-        return $objetoAccesoDato->RetornarUltimoIdInsertado();    
+        return $objetoAccesoDato->RetornarUltimoIdInsertado();  
 	}
 
     /***
@@ -42,15 +24,37 @@ class pedido
     ---- Cambiar para mostrar lo pedido en Doc ----
     -----------------------------------------------
     ***/
-    public static function SelectLosEmpleados()
+    //Por Socio & Mozo
+    public static function SelectLosPedidos()
 	{
-		$objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
-        $consulta =$objetoAccesoDato->RetornarConsulta(
-            "select idEmpleado, legajo, nombre, apellido, password, operaciones, idTipo, idEstado
-             from empleado");
-		$consulta->execute();
-		return $consulta->fetchAll(PDO::FETCH_CLASS, "empleado");		
-	}
+
+        $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
+        $consulta =$objetoAccesoDato->RetornarConsulta("select pr.idProducto, pr.descripcion, pr.monto as PrecioUnidad, pr.idTipo, pp.idPedido, pp.idEmpleado as PreparadoPor, pp.idEstado as EstadoProducto, pp.tEstimado, pp.cantidad, p.idMesa, p.idEmpleado as Mozo, p.codigo, p.nombreCte, p.foto, p.idEstado as EstadoFinal, p.monto as Total from producto pr INNER JOIN ped_prod pp on pr.idProducto=pp.idProducto INNER JOIN pedido p on p.idPedido=pp.idPedido INNER JOIN horario h on h.idPedido=pp.idPedido order by inicio asc");
+        
+        //$consulta =$objetoAccesoDato->RetornarConsulta("SELECT pr.idProducto as prod,pp.idProducto as produ FROM producto pr INNER JOIN ped_prod pp on pr.idProducto=pp.idProducto  where pr.idTipo=4");
+        $consulta->execute();
+        $listado = $consulta->fetchAll(PDO::FETCH_ASSOC);
+        return $listado;
+    }
+
+
+
+    //Por tipo
+    public static function SelectLosPedidosPorEmpleado($idTipo)
+	{
+
+        $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
+        $consulta =$objetoAccesoDato->RetornarConsulta("select p.idPedido, pr.descripcion, pp.cantidad, pp.idEmpleado, pp.idEstado,p.idEstado as EstadoFinal, h.inicio, pp.tEstimado, pr.monto as PrecioUnidad, p.monto as Total from producto pr INNER JOIN ped_prod pp on pr.idProducto=pp.idProducto INNER JOIN pedido p on p.idPedido=pp.idPedido INNER JOIN horario h on h.idPedido=pp.idPedido where pr.idTipo=$idTipo order by inicio asc");
+        
+        //$consulta =$objetoAccesoDato->RetornarConsulta("SELECT pr.idProducto as prod,pp.idProducto as produ FROM producto pr INNER JOIN ped_prod pp on pr.idProducto=pp.idProducto  where pr.idTipo=4");
+        $consulta->execute();
+
+        $listado = $consulta->fetchAll(PDO::FETCH_ASSOC);
+        return $listado;
+    }
+    
+
+
 
     public static function SelectUnEmpleado($legajo) 
 	{
@@ -67,98 +71,21 @@ class pedido
 			
 	}
 
-
-
-    ///////SELECT COMPLETO CON TIEMPO///////
-    ///////Trae todos los tiempos por el id q pase///////
-    /*
-    public static function SelectUnUsuarioCompleto($id) 
-    {
-        $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
-        $consulta =$objetoAccesoDato->RetornarConsulta(
-            "select * FROM usuario u INNER JOIN tiempo t on u.id =$id AND t.idUsuario =u.id");
-        //$consulta->bindValue(':id', $id, PDO::PARAM_INT);
-        $consulta->execute();
-        
-        $usuarioBuscado= $consulta->fetchAll(PDO::FETCH_ASSOC);
-        return $usuarioBuscado;
-            
-    }*/
-
-
-
-    public static function Login($legajo, $pass)
-    {
-        $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();
-        $consulta = $objetoAccesoDato->RetornarConsulta("SELECT * FROM `empleado` 
-        WHERE legajo =:legajo and password=:pass");
-        $consulta->bindValue(':legajo', $legajo, PDO::PARAM_INT);
-        $consulta->bindValue(':pass', $pass, PDO::PARAM_STR);
-        $consulta->execute();
-        $usuarioLogeado=$consulta->fetchObject('empleado');
-        return $usuarioLogeado;
-        
-    }
-
-    public function InsertEmpleado()
-	{
-        
-        
-        $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
-        $consulta = $objetoAccesoDato->RetornarConsulta("INSERT into empleado (legajo, nombre, apellido, password, operaciones, idTipo, idEstado) values ('$this->legajo','$this->nombre','$this->apellido','$this->password','$this->operaciones','$this->tipo','$this->estado')");
-        $consulta->execute();
-        return $objetoAccesoDato->RetornarUltimoIdInsertado();
-
-        /* $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
-        $consulta =$objetoAccesoDato->RetornarConsulta("INSERT into empleado (legajo, nombre, apellido, password, operaciones, idTipo, idEstado)values(:legajo,:nombre,:apellido,:password,:operaciones,:idTipo,:idEstado)");
-        $consulta->bindParam(':legajo',$this->legajo);
-        $consulta->bindParam(':nombre', $this->nombre);
-        $consulta->bindParam(':apellido', $this->apellido);
-        $consulta->bindParam(':password', $this->password);
-        $consulta->bindParam(':operaciones',$this->operaciones);
-        $consulta->bindParam(':idTipo',$this->idTipo);
-        $consulta->bindParam(':idEstado',$this->idEstado);
-        $consulta->execute();	
-                
-        return $objetoAccesoDato->RetornarUltimoIdInsertado(); */
-
-    }
     
+    //Actualiza montos
     public static function ActualizarMontoTotal($idPedido,$acumulador)
 	{
-            // echo"esa";
-            // die();
+        
         $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
         $consulta =$objetoAccesoDato->RetornarConsulta("UPDATE pedido set monto=:acumulador where idPedido=:idPedido");	
         $consulta->bindValue(':idPedido',$idPedido, PDO::PARAM_INT);
         $consulta->bindValue(':acumulador',$acumulador, PDO::PARAM_INT);
         $consulta->execute();
         return $consulta->rowCount();
-	}
-
-    public static function EliminarUsuario($id)
-	{
-        $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
-        $consulta =$objetoAccesoDato->RetornarConsulta("
-            delete 
-            from usuario 				
-            WHERE id=:id");	
-        $consulta->bindValue(':id',$id, PDO::PARAM_INT);		
-        $consulta->execute();
-        return $consulta->rowCount();
-	}
-
-    public function ModificarEstadoUsuario()
-    {
-
-        $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
-        $consulta = $objetoAccesoDato->RetornarConsulta('UPDATE usuario set estado=:estado WHERE id=:id');
-        $consulta->bindParam(':id',$this->id,PDO::PARAM_INT); 
-        $consulta->bindParam(':estado',$this->estado);        
-        return $consulta->execute();
     }
     
 
+    //Para saber si el codigo generado ya existe
     public static function ValidarCodigoMesa($codigo)
     {
         $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso();

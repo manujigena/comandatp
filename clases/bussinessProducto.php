@@ -14,9 +14,6 @@ class bussinessProducto extends producto implements IComun
         $producto->monto = $datosRecibidos['monto'];
         $producto->idTipo = $datosRecibidos['tipo'];
         
-        /* var_dump($empleado);
-        die(); */
-
         $idProducto = $producto->InsertProducto();
         return $response->write(json_encode($idProducto));        
     }
@@ -24,10 +21,7 @@ class bussinessProducto extends producto implements IComun
 
     public function TraerTodos($request, $response, $args)
     {
-        /* $listado = empleado::SelectLosEmpleados();
-        $response->write(json_encode($listado));			
-    
-        return $response; */
+        
         $listado=producto::SelectLosProductos();
         $newResponse = $response->withJson($listado, 200);  
        return $newResponse;
@@ -39,6 +33,15 @@ class bussinessProducto extends producto implements IComun
         $unProducto = producto::SelectUnProducto($idProducto);
         $newResponse = $response->withJson($unProducto, 200);  
         return $newResponse;
+    }
+
+    public function BorrarUno($request, $response, $args)
+    {
+        //code...
+    }
+    public function ModificarUno($request, $response, $args)
+    {
+        //code...
     }
 
 }

@@ -28,29 +28,31 @@ $app->get('/', function (Request $request, Response $response, array $args) {
 
 }); */
 
-
+//EMPLEADO
 $app->group('/empleado', function () {
-    $this->get('/' , \bussinessEmpleado::class . ':TraerTodos');
-    $this->get('/{legajo}' , \bussinessEmpleado::class . ':TraerUno')-> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');
+    $this->get('/' , \bussinessEmpleado::class . ':TraerTodos') -> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');
+    $this->get('/{idEmpleado}' , \bussinessEmpleado::class . ':TraerUno') -> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');
     $this->post('/' , \bussinessEmpleado::class . ':CrearUno') -> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');
     $this->post('/login', \bussinessEmpleado::class . ':Login');
+    $this->delete('/{idEmpleado}', \bussinessEmpleado::class . ':BorrarUno') -> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');
+    $this->put('/{idEmpleado}', \bussinessEmpleado::class . ':ModificarUno') -> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');
 });
 
 
 //MENU
 $app->group('/producto', function () {
     $this->get('/' , \bussinessProducto::class . ':TraerTodos');
-    $this->get('/{legajo}' , \bussinessProducto::class . ':TraerUno');
-    $this->post('/' , \bussinessProducto::class . ':CrearUno');// -> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');    
+    $this->get('/{idProducto}' , \bussinessProducto::class . ':TraerUno');
+    $this->post('/' , \bussinessProducto::class . ':CrearUno') -> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');    
 });
 
 
 
 //PEDIDO
 $app->group('/pedido', function () {
-    $this->get('/' , \bussinessPedido::class . ':TraerTodos');
+    $this->get('/' , \bussinessPedido::class . ':TraerTodos') -> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');
     $this->get('/{legajo}' , \bussinessPedido::class . ':TraerUno');
-    $this->post('/' , \bussinessPedido::class . ':CrearUno');// -> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');    
+    $this->post('/' , \bussinessPedido::class . ':CrearUno') -> add(\MWAuthJWT::class . ':ValidarTipoEmpleado');    
 });
 
 

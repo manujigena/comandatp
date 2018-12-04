@@ -22,11 +22,11 @@ class authJWT
         $payload = array(
         	          
             'data' => [
-                'legajo'=> $datos->legajo,
-                 'nombre'=> $datos->nombre, 
-                 'apellido'=> $datos->apellido,
-                 'idTipo'=> $datos->idTipo,
-                 'idEstado'=> $datos->idTipo
+                'idEmpleado'=> $datos->idEmpleado,
+                'nombre'=> $datos->nombre, 
+                'apellido'=> $datos->apellido,
+                'idTipo'=> $datos->idTipo,
+                'idEstado'=> $datos->idTipo
             ],
             'app'=> "Token Comanda"
         );
@@ -58,8 +58,16 @@ class authJWT
         }        
         
     }
-
     
-
+    /*VER SI SIRVE*/
+    public static function ObtenerData($token)
+    {   
+        
+        return JWT::decode(
+            $token,
+            self::$claveSecreta,
+            self::$tipoEncriptacion
+        )->data;
+    }
 
 }
